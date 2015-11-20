@@ -3,7 +3,7 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour {
 
-	private float speed = 2f;
+	[SerializeField] private float speed = 5f;
 
 	// Use this for initialization
 	void Start () {
@@ -15,8 +15,10 @@ public class PlayerController : MonoBehaviour {
 		float h = Input.GetAxis ("Horizontal");
 		float v = Input.GetAxis ("Vertical");
 
-		if (h > 0.8f) 
+		if (h > 0.8f) {
 			transform.position += Vector3.right * speed * Time.deltaTime;
+			transform.rotation = Quaternion.LookRotation (Vector3.right);
+		}
 		else if(h < -0.8f)
 			transform.position += Vector3.left * speed * Time.deltaTime;
 			

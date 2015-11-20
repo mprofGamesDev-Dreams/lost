@@ -24,7 +24,7 @@ public class MazeObject : MonoBehaviour {
 		for (int cntx = 0; cntx<mazeWidth; cntx++) {
 
 			for(int cnty = 0; cnty<mazeHeight; cnty++){
-				mazeMap[cntx,cnty] = (GameObject)Instantiate(wallPrefab,new Vector3(cntx*tileWidth,0,cnty*tileHeight),Quaternion.identity);
+				mazeMap[cntx,cnty] = (GameObject)Instantiate(wallPrefab,new Vector3(cntx*tileWidth,1.5f,cnty*tileHeight),Quaternion.identity);
 				mazeMap[cntx,cnty].transform.parent = this.transform;
 				mazeMap[cntx,cnty].GetComponent<BlockObject>().xPos = cntx;
 				mazeMap[cntx,cnty].GetComponent<BlockObject>().yPos = cnty;
@@ -116,5 +116,41 @@ public class MazeObject : MonoBehaviour {
 			return true;
 		}
 		return false;
+	}
+
+	public int TileWidth {
+		get {
+			return this.tileWidth;
+		}
+		set {
+			tileWidth = value;
+		}
+	}
+
+	public int TileHeight {
+		get {
+			return this.tileHeight;
+		}
+		set {
+			tileHeight = value;
+		}
+	}
+
+	public int StartX {
+		get {
+			return this.startX;
+		}
+		set {
+			startX = value;
+		}
+	}
+
+	public int StartY {
+		get {
+			return this.startY;
+		}
+		set {
+			startY = value;
+		}
 	}
 }
