@@ -6,11 +6,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float MoveSpeed = 5f;
     private bool CanTurn = true;
+    private PlayerInventory Inventory;
 
 	// Use this for initialization
 	void Start ()
     {
-		
+        Inventory = GetComponent<PlayerInventory>();
 	}
 	
 	// Update is called once per frame
@@ -21,6 +22,12 @@ public class PlayerController : MonoBehaviour
 
         // Turn
         HandleTurning();
+
+        // Gold Testing
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            Inventory.AddGold(10);
+        }
 	}
 
     private void HandleMovement()
