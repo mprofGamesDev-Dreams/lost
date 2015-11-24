@@ -23,9 +23,12 @@ public class PlayerInventory : MonoBehaviour
         {
             Inventory.Add(new InventoryItem((InventoryItem.INVENTORY_TYPE)i));
         }
+
+        // Set the initial gui text
+        RefreshGUI();
     }
 
-    // Testing
+    // Testing Purposes only - this can be remove
     public void AddGold(int Amount)
     {
         int ID = (int)InventoryItem.INVENTORY_TYPE.GOLD;
@@ -36,9 +39,9 @@ public class PlayerInventory : MonoBehaviour
         RefreshGUI();
     }
 
-    public void AddItem(InventoryItem item, int Amount)
+    public void AddItem(InventoryItem.INVENTORY_TYPE type, int Amount)
     {
-        int ID = (int)item.GetItemType();
+        int ID = (int)type;
 
         // Increase counter of that item
         Inventory[ID].Add(Amount);
