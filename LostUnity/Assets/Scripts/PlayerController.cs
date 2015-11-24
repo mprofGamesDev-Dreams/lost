@@ -1,30 +1,64 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlayerController : MonoBehaviour {
-
-	[SerializeField] private float speed = 5f;
+public class PlayerController : MonoBehaviour
+{
+    [SerializeField]
+    private float MoveSpeed = 5f;
+    private bool CanTurn = true;
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		float h = Input.GetAxis ("Horizontal");
-		float v = Input.GetAxis ("Vertical");
+	void Update ()
+    {
+		// Moving Forward / Backward
+        HandleMovement();
 
-		if (h > 0.8f) {
-			transform.position += Vector3.right * speed * Time.deltaTime;
-			transform.rotation = Quaternion.LookRotation (Vector3.right);
-		}
-		else if(h < -0.8f)
-			transform.position += Vector3.left * speed * Time.deltaTime;
-			
-		if (v > 0.8f) 
-			transform.position += Vector3.forward * speed * Time.deltaTime;
-		else if(v < -0.8f)
-			transform.position += Vector3.back * speed * Time.deltaTime;
+        // Turn
+        HandleTurning();
 	}
+
+    private void HandleMovement()
+    {
+        float v = Input.GetAxis("Vertical");
+        Vector3 vVelocity = transform.forward * MoveSpeed * Time.deltaTime;
+
+        // Move Forward / Back
+        if (v > 0.8f)
+        {
+            transform.position += vVelocity;
+        }
+        else if (v < -0.8f)
+        {
+            transform.position -= vVelocity;
+        }
+    }
+
+    private void HandleTurning()
+    {
+        float h = Input.GetAxis("Horizontal");
+
+        // Move Left / Right
+        if (h > 0.8f & CanTurn)
+        {
+            Vector3 euler = transform.rotation.eulerAngles + new Vector3(0, 90, 0);
+            transform.rotation = Quaternion.Euler(euler);
+            CanTurn = false;
+        }
+        else if (h < -0.8f & CanTurn)
+        {
+            Vector3 euler = transform.rotation.eulerAngles - new Vector3(0, 90, 0);
+            transform.rotation = Quaternion.Euler(euler);
+            CanTurn = false;
+        }
+        else if (h == 0.0f)
+        {
+            CanTurn = true;
+        }
+    }
 }
