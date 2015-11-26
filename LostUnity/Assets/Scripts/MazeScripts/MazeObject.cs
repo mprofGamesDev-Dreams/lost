@@ -14,8 +14,10 @@ public class MazeObject : MonoBehaviour {
 
 	[SerializeField] private int startX = 49;
 	[SerializeField] private int startY = 49;
-	private List<GameObject> frontierBlocks;
+	[SerializeField] private List<GameObject> frontierBlocks;
+	[SerializeField] private int itNumber =0;
 
+	[SerializeField] private float Speed = 0.5f;
 	// Use this for initialization
 	void Start () {
 
@@ -40,11 +42,14 @@ public class MazeObject : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		DoNextStep ();
-		DoNextStep ();
-		DoNextStep ();
-		DoNextStep ();
-		DoNextStep ();
+		while (DoNextStep()) {};
+
+		frontierBlocks.Clear ();
+		mazeMap [startX, startY].GetComponent<BlockObject> ().distanceFromCenter = 0;
+		frontierBlocks.Add (mazeMap [startX, startY]);
+
+		while (AssignDistanceValues()) {};
+
 	}
 
 	bool DoNextStep()
@@ -57,31 +62,84 @@ public class MazeObject : MonoBehaviour {
 			GameObject currentFrontier = frontierBlocks[itterator];
 			frontierBlocks.RemoveAt(itterator);
 
-			if(currentFrontier.activeSelf && IsValidPath(currentFrontier))
+			if(!currentFrontier.GetComponent<BlockObject>().isPath && IsValidPath(currentFrontier))
 			{
 				Vector2 frontierPos = new Vector2(currentFrontier.GetComponent<BlockObject>().xPos,currentFrontier.GetComponent<BlockObject>().yPos);
-				if ((frontierPos.x -1 > 0.0f) && (frontierPos.x -1 <= (float)mazeWidth) && mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].activeSelf)
+				if ((frontierPos.x -1 > 0.0f) && (frontierPos.x -1 <= (float)mazeWidth) && !mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x-1,(int)frontierPos.y]);
 				}
-				if ((frontierPos.x +1 > 0.0f) && (frontierPos.x +1 <= (float)mazeWidth) && mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].activeSelf)
+				if ((frontierPos.x +1 > 0.0f) && (frontierPos.x +1 <= (float)mazeWidth) && !mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x+1,(int)frontierPos.y]);
 				}
-				if ((frontierPos.y -1 > 0.0f) && (frontierPos.y -1 <= (float)mazeHeight) && mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].activeSelf)
+				if ((frontierPos.y -1 > 0.0f) && (frontierPos.y -1 <= (float)mazeHeight) && !mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().isPath)
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y-1]);
 				}
-				if ((frontierPos.y +1> 0.0f) && (frontierPos.y +1 <= (float)mazeHeight) && mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].activeSelf)
+				if ((frontierPos.y +1> 0.0f) && (frontierPos.y +1 <= (float)mazeHeight) && !mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().isPath)
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y+1]);
 				}
 
-				mazeMap[(int)frontierPos.x,(int)frontierPos.y].SetActive(false);
+				Deactivate(mazeMap[(int)frontierPos.x,(int)frontierPos.y]);
 
 			}
 			return true;
 		}
+	}
+
+	bool AssignDistanceValues()
+	{
+		
+		if (frontierBlocks.Count == 0) {
+			return false;
+		} else {
+
+			GameObject currentFrontier = frontierBlocks[0];
+			int currentDist = currentFrontier.GetComponent<BlockObject>().distanceFromCenter;
+			frontierBlocks.RemoveAt(0);
+			Vector2 frontierPos = new Vector2(currentFrontier.GetComponent<BlockObject>().xPos,currentFrontier.GetComponent<BlockObject>().yPos);
+
+			if ((frontierPos.x -1 > 0.0f) && (frontierPos.x -1 <= (float)mazeWidth) && mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
+			{
+				if(mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter == -1 || 
+				   mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter > currentDist+1)
+				{
+					frontierBlocks.Add(mazeMap[(int)frontierPos.x-1,(int)frontierPos.y]);
+					mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter = currentDist+1;
+				}
+			}
+			if ((frontierPos.x +1 > 0.0f) && (frontierPos.x +1 <= (float)mazeWidth) && mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
+			{
+				if(mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter == -1 || 
+				   mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter > currentDist+1)
+				{
+					frontierBlocks.Add(mazeMap[(int)frontierPos.x+1,(int)frontierPos.y]);
+					mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().distanceFromCenter = currentDist+1;
+				}
+			}
+			if ((frontierPos.y -1 > 0.0f) && (frontierPos.y -1 <= (float)mazeHeight) && mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().isPath)
+			{
+				if(mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().distanceFromCenter == -1 || 
+				   mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().distanceFromCenter > currentDist+1)
+				{
+					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y-1]);
+					mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().distanceFromCenter = currentDist+1;
+				}
+			}
+			if ((frontierPos.y +1> 0.0f) && (frontierPos.y +1 <= (float)mazeHeight) && mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().isPath)
+			{
+				if(mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().distanceFromCenter == -1 || 
+				   mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().distanceFromCenter > currentDist+1)
+				{
+					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y+1]);
+					mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().distanceFromCenter = currentDist+1;
+				};
+			}
+
+		}
+		return true;
 	}
 
 	bool IsValidPath(GameObject block)
@@ -92,19 +150,19 @@ public class MazeObject : MonoBehaviour {
 		if (blockPos.x - 1 > 0 && blockPos.x - 1 < mazeWidth && blockPos.x + 1 > 0 && blockPos.x + 1 < mazeWidth &&
 		    blockPos.y - 1 > 0 && blockPos.y - 1 < mazeHeight && blockPos.y + 1 > 0 && blockPos.y + 1 < mazeHeight) 
 		{
-			if(mazeMap[(int)blockPos.x -1,(int)blockPos.y].activeSelf == false)
+			if(mazeMap[(int)blockPos.x -1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
 			{
 				surroundingPaths ++;
 			}
-			if(mazeMap[(int)blockPos.x +1,(int)blockPos.y].activeSelf == false)
+			if(mazeMap[(int)blockPos.x +1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
 			{
 				surroundingPaths ++;
 			}
-			if(mazeMap[(int)blockPos.x,(int)blockPos.y-1].activeSelf == false)
+			if(mazeMap[(int)blockPos.x,(int)blockPos.y-1].GetComponent<BlockObject>().isPath == true)
 			{
 				surroundingPaths ++;
 			}
-			if(mazeMap[(int)blockPos.x,(int)blockPos.y+1].activeSelf == false)
+			if(mazeMap[(int)blockPos.x,(int)blockPos.y+1].GetComponent<BlockObject>().isPath == true)
 			{
 				surroundingPaths ++;
 			}
@@ -116,5 +174,86 @@ public class MazeObject : MonoBehaviour {
 			return true;
 		}
 		return false;
+	}
+
+	public void RequestPathToExit(GameObject obj)
+	{
+		StartCoroutine (LightToExit (obj));
+	}
+
+	IEnumerator LightToExit(GameObject obj)
+	{
+	
+		List<GameObject> Path = new List<GameObject> ();
+		Vector2 pos = new Vector2 (obj.GetComponent<BlockObject>().xPos, obj.GetComponent<BlockObject>().yPos);
+		GameObject currentObj = obj;
+		//Vector2 pos
+		while (pos.x != startX || pos.y != startY) {
+			pos = new Vector2 (currentObj.GetComponent<BlockObject>().xPos, currentObj.GetComponent<BlockObject>().yPos);
+
+			if( mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			   && mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x-1,(int)pos.y];
+			}
+
+			else if( mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			        && mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x+1,(int)pos.y];
+			}
+
+			else if( mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter
+			        && mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x,(int)pos.y-1];
+			}
+
+			else if( mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			        && mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x,(int)pos.y+1];
+			}
+			else
+			{
+				break;
+			}
+			//SpawnLight(currentObj.transform.position);
+			Path.Add(currentObj);
+			//yield return new WaitForSeconds(0.05f);
+		}
+		GameObject trailer = new GameObject("Trailer");
+		TrailRenderer trail = trailer.AddComponent<TrailRenderer> ();
+		trailer.transform.position = obj.transform.position + new Vector3(0,1,0);
+		trail.startWidth = 1;
+		trail.endWidth = 1;
+		trail.time = 5;
+
+		//Path.Reverse ();
+
+		for (int cnt =0; cnt<Path.Count; cnt++) {
+			while (Vector3.Distance(trailer.transform.position ,Path[cnt].transform.position + new Vector3(0,1,0)) >0.1)
+			{
+				trailer.transform.position = Vector3.MoveTowards(trailer.transform.position,Path[cnt].transform.position+ new Vector3(0,1,0),Time.deltaTime*Speed);
+				yield return new WaitForEndOfFrame();
+			}
+		}
+	}
+
+	void SpawnLight(Vector3 pos)
+	{
+		GameObject lightGameObject = new GameObject("The Light");
+		Light lightComp = lightGameObject.AddComponent<Light>();
+		lightComp.color = Color.blue;
+		pos.y ++;
+		lightGameObject.transform.position = pos;
+		Destroy (lightGameObject, 5.0f);
+	}
+
+	void Deactivate(GameObject obj)
+	{
+		obj.GetComponent<BoxCollider> ().isTrigger = true;
+		obj.GetComponent<MeshRenderer> ().enabled = false;
+		obj.GetComponent<BlockObject> ().isPath = true;
 	}
 }
