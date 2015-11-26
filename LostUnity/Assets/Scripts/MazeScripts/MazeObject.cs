@@ -175,6 +175,89 @@ public class MazeObject : MonoBehaviour {
 		}
 		return false;
 	}
+
+	
+	IEnumerator LightToExit(GameObject obj)
+	{
+		
+		List<GameObject> Path = new List<GameObject> ();
+		Vector2 pos = new Vector2 (obj.GetComponent<BlockObject>().xPos, obj.GetComponent<BlockObject>().yPos);
+		GameObject currentObj = obj;
+		//Vector2 pos
+		while (pos.x != startX || pos.y != startY) {
+			pos = new Vector2 (currentObj.GetComponent<BlockObject>().xPos, currentObj.GetComponent<BlockObject>().yPos);
+			
+			if( mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			   && mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x-1,(int)pos.y];
+			}
+			
+			else if( mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			        && mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x+1,(int)pos.y];
+			}
+			
+			else if( mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter
+			        && mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x,(int)pos.y-1];
+			}
+			
+			else if( mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
+			        && mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().isPath)
+			{
+				currentObj = mazeMap[(int)pos.x,(int)pos.y+1];
+			}
+			else
+			{
+				break;
+			}
+			//SpawnLight(currentObj.transform.position);
+			Path.Add(currentObj);
+			//yield return new WaitForSeconds(0.05f);
+		}
+		GameObject trailer = new GameObject("Trailer");
+		TrailRenderer trail = trailer.AddComponent<TrailRenderer> ();
+		trailer.transform.position = obj.transform.position + new Vector3(0,1,0);
+		trail.startWidth = 1;
+		trail.endWidth = 1;
+		trail.time = 5;
+		
+		//Path.Reverse ();
+		
+		for (int cnt =0; cnt<Path.Count; cnt++) {
+			while (Vector3.Distance(trailer.transform.position ,Path[cnt].transform.position + new Vector3(0,1,0)) >0.1)
+			{
+				trailer.transform.position = Vector3.MoveTowards(trailer.transform.position,Path[cnt].transform.position+ new Vector3(0,1,0),Time.deltaTime*Speed);
+				yield return new WaitForEndOfFrame();
+			}
+		}
+	}
+	
+	void SpawnLight(Vector3 pos)
+	{
+		GameObject lightGameObject = new GameObject("The Light");
+		Light lightComp = lightGameObject.AddComponent<Light>();
+		lightComp.color = Color.blue;
+		pos.y ++;
+		lightGameObject.transform.position = pos;
+		Destroy (lightGameObject, 5.0f);
+	}
+	
+	void Deactivate(GameObject obj)
+	{
+		obj.GetComponent<BoxCollider> ().isTrigger = true;
+		obj.GetComponent<MeshRenderer> ().enabled = false;
+		obj.GetComponent<BlockObject> ().isPath = true;
+	}
+
+	public void RequestPathToExit(GameObject obj)
+	{
+		StartCoroutine (LightToExit (obj));
+	}
+
 	public int TileWidth {
 		get {
 			return this.tileWidth;
@@ -209,85 +292,7 @@ public class MazeObject : MonoBehaviour {
 		set {
 			startY = value;
 		}
+	}
 		
-	public void RequestPathToExit(GameObject obj)
-	{
-		StartCoroutine (LightToExit (obj));
-	}
 
-	IEnumerator LightToExit(GameObject obj)
-	{
-	
-		List<GameObject> Path = new List<GameObject> ();
-		Vector2 pos = new Vector2 (obj.GetComponent<BlockObject>().xPos, obj.GetComponent<BlockObject>().yPos);
-		GameObject currentObj = obj;
-		//Vector2 pos
-		while (pos.x != startX || pos.y != startY) {
-			pos = new Vector2 (currentObj.GetComponent<BlockObject>().xPos, currentObj.GetComponent<BlockObject>().yPos);
-
-			if( mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
-			   && mazeMap[(int)pos.x-1,(int)pos.y].GetComponent<BlockObject>().isPath)
-			{
-				currentObj = mazeMap[(int)pos.x-1,(int)pos.y];
-			}
-
-			else if( mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
-			        && mazeMap[(int)pos.x+1,(int)pos.y].GetComponent<BlockObject>().isPath)
-			{
-				currentObj = mazeMap[(int)pos.x+1,(int)pos.y];
-			}
-
-			else if( mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter
-			        && mazeMap[(int)pos.x,(int)pos.y-1].GetComponent<BlockObject>().isPath)
-			{
-				currentObj = mazeMap[(int)pos.x,(int)pos.y-1];
-			}
-
-			else if( mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().distanceFromCenter < currentObj.GetComponent<BlockObject>().distanceFromCenter 
-			        && mazeMap[(int)pos.x,(int)pos.y+1].GetComponent<BlockObject>().isPath)
-			{
-				currentObj = mazeMap[(int)pos.x,(int)pos.y+1];
-			}
-			else
-			{
-				break;
-			}
-			//SpawnLight(currentObj.transform.position);
-			Path.Add(currentObj);
-			//yield return new WaitForSeconds(0.05f);
-		}
-		GameObject trailer = new GameObject("Trailer");
-		TrailRenderer trail = trailer.AddComponent<TrailRenderer> ();
-		trailer.transform.position = obj.transform.position + new Vector3(0,1,0);
-		trail.startWidth = 1;
-		trail.endWidth = 1;
-		trail.time = 5;
-
-		//Path.Reverse ();
-
-		for (int cnt =0; cnt<Path.Count; cnt++) {
-			while (Vector3.Distance(trailer.transform.position ,Path[cnt].transform.position + new Vector3(0,1,0)) >0.1)
-			{
-				trailer.transform.position = Vector3.MoveTowards(trailer.transform.position,Path[cnt].transform.position+ new Vector3(0,1,0),Time.deltaTime*Speed);
-				yield return new WaitForEndOfFrame();
-			}
-		}
-	}
-
-	void SpawnLight(Vector3 pos)
-	{
-		GameObject lightGameObject = new GameObject("The Light");
-		Light lightComp = lightGameObject.AddComponent<Light>();
-		lightComp.color = Color.blue;
-		pos.y ++;
-		lightGameObject.transform.position = pos;
-		Destroy (lightGameObject, 5.0f);
-	}
-
-	void Deactivate(GameObject obj)
-	{
-		obj.GetComponent<BoxCollider> ().isTrigger = true;
-		obj.GetComponent<MeshRenderer> ().enabled = false;
-		obj.GetComponent<BlockObject> ().isPath = true;
-	}
 }
