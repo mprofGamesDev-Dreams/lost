@@ -1,8 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
-public class MazeObject : MonoBehaviour {
+/* Class for representing and generating the maze object.
+ * Also contains methods for navigatig the maze
+ * Please note some generic A* methods are located in the subclass
+ * MazeObject.AStar.cs
+ * GC
+ */
+
+public partial class MazeObject : MonoBehaviour {
 
 	[SerializeField] private GameObject[,] mazeMap;
 	[SerializeField] private int mazeWidth = 100;
@@ -32,7 +40,7 @@ public class MazeObject : MonoBehaviour {
 				mazeMap[cntx,cnty].GetComponent<BlockObject>().yPos = cnty;
 			}
 		}
-		mazeMap[startX,startY].SetActive(false);
+		Deactivate(mazeMap[startX,startY]);
 		frontierBlocks.Add(mazeMap[startX,startY]);
 		frontierBlocks.Add(mazeMap[startX-1,startY]);
 		frontierBlocks.Add(mazeMap[startX+1,startY]);
@@ -52,13 +60,13 @@ public class MazeObject : MonoBehaviour {
 
 	}
 
-	bool DoNextStep()
+	bool DoNextStep() // Compleates the next step of the Primm algorithm. Returns false if maze is compleat.
 	{
 		if (frontierBlocks.Count == 0) {
 			return false;
 		} else {
 
-			int itterator = Random.Range(0, frontierBlocks.Count);
+			int itterator = UnityEngine.Random.Range(0, frontierBlocks.Count);
 			GameObject currentFrontier = frontierBlocks[itterator];
 			frontierBlocks.RemoveAt(itterator);
 
@@ -89,7 +97,41 @@ public class MazeObject : MonoBehaviour {
 		}
 	}
 
-	bool AssignDistanceValues()
+	bool IsValidPath(GameObject block) //checks to see if a block is a valid path block. This is decided by checking to see if the block has more than one neighbour that is already a path. If it does then the block is ineligable.
+	{
+		int surroundingPaths = 0;
+		Vector2 blockPos = new Vector2(block.GetComponent<BlockObject>().xPos,block.GetComponent<BlockObject>().yPos);
+		
+		if (blockPos.x - 1 > 0 && blockPos.x - 1 < mazeWidth && blockPos.x + 1 > 0 && blockPos.x + 1 < mazeWidth &&
+		    blockPos.y - 1 > 0 && blockPos.y - 1 < mazeHeight && blockPos.y + 1 > 0 && blockPos.y + 1 < mazeHeight) 
+		{
+			if(mazeMap[(int)blockPos.x -1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
+			{
+				surroundingPaths ++;
+			}
+			if(mazeMap[(int)blockPos.x +1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
+			{
+				surroundingPaths ++;
+			}
+			if(mazeMap[(int)blockPos.x,(int)blockPos.y-1].GetComponent<BlockObject>().isPath == true)
+			{
+				surroundingPaths ++;
+			}
+			if(mazeMap[(int)blockPos.x,(int)blockPos.y+1].GetComponent<BlockObject>().isPath == true)
+			{
+				surroundingPaths ++;
+			}
+			if(surroundingPaths>1 && UnityEngine.Random.Range(0,250) != 0)
+			{
+				return false;
+			}
+			
+			return true;
+		}
+		return false;
+	}
+
+	bool AssignDistanceValues() //Assigns values to each cell representing how far from the origin of the maze they are.
 	{
 		
 		if (frontierBlocks.Count == 0) {
@@ -142,42 +184,9 @@ public class MazeObject : MonoBehaviour {
 		return true;
 	}
 
-	bool IsValidPath(GameObject block)
-	{
-		int surroundingPaths = 0;
-		Vector2 blockPos = new Vector2(block.GetComponent<BlockObject>().xPos,block.GetComponent<BlockObject>().yPos);
 
-		if (blockPos.x - 1 > 0 && blockPos.x - 1 < mazeWidth && blockPos.x + 1 > 0 && blockPos.x + 1 < mazeWidth &&
-		    blockPos.y - 1 > 0 && blockPos.y - 1 < mazeHeight && blockPos.y + 1 > 0 && blockPos.y + 1 < mazeHeight) 
-		{
-			if(mazeMap[(int)blockPos.x -1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
-			{
-				surroundingPaths ++;
-			}
-			if(mazeMap[(int)blockPos.x +1,(int)blockPos.y].GetComponent<BlockObject>().isPath == true)
-			{
-				surroundingPaths ++;
-			}
-			if(mazeMap[(int)blockPos.x,(int)blockPos.y-1].GetComponent<BlockObject>().isPath == true)
-			{
-				surroundingPaths ++;
-			}
-			if(mazeMap[(int)blockPos.x,(int)blockPos.y+1].GetComponent<BlockObject>().isPath == true)
-			{
-				surroundingPaths ++;
-			}
-			if(surroundingPaths>1 && Random.Range(0,250) != 0)
-			{
-				return false;
-			}
 
-			return true;
-		}
-		return false;
-	}
-
-	
-	IEnumerator LightToExit(GameObject obj)
+	IEnumerator LightToExit(GameObject obj) // debug code for traceback method
 	{
 		
 		List<GameObject> Path = new List<GameObject> ();
@@ -235,7 +244,11 @@ public class MazeObject : MonoBehaviour {
 			}
 		}
 	}
-	
+
+
+
+
+
 	void SpawnLight(Vector3 pos)
 	{
 		GameObject lightGameObject = new GameObject("The Light");
@@ -253,10 +266,7 @@ public class MazeObject : MonoBehaviour {
 		obj.GetComponent<BlockObject> ().isPath = true;
 	}
 
-	public void RequestPathToExit(GameObject obj)
-	{
-		StartCoroutine (LightToExit (obj));
-	}
+
 
 	public int TileWidth {
 		get {
