@@ -3,19 +3,21 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    private float MoveSpeed = 5f;
-    private bool CanTurn = true;
-    private PlayerInventory Inventory;
+    [Header("Player Attributes")]
+    public float MoveSpeed = 5.0f;
+    public bool CanTurn = true;
 
-	// Use this for initialization
+    [Header("Inventory")]
+    public GameObject InventoryUI;
+    public PlayerInventory Inventory;
+    public bool ShowInventory = false;
+
 	void Start ()
     {
-        Inventory = GetComponent<PlayerInventory>();
+        
 	}
-	
-	// Update is called once per frame
-	void Update ()
+
+    void Update()
     {
 		// Moving Forward / Backward
         HandleMovement();
@@ -23,11 +25,8 @@ public class PlayerController : MonoBehaviour
         // Turn
         HandleTurning();
 
-        // Gold Testing
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            Inventory.AddGold(10);
-        }
+        // Input
+        HandleInput();
 	}
 
     private void HandleMovement()
@@ -66,6 +65,28 @@ public class PlayerController : MonoBehaviour
         else if (h == 0.0f)
         {
             CanTurn = true;
+        }
+    }
+
+    private void HandleInput()
+    {
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            ShowInventory = !ShowInventory;
+
+            InventoryUI.SetActive(ShowInventory);
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Collectable")
+        {
+            // Add the item to the inventory
+            Inventory.AddItem(other.GetComponent<InventoryItem>());
+
+            // Delete the collectable
+            Destroy(other.gameObject);
         }
     }
 }
