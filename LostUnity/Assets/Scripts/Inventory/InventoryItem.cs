@@ -20,6 +20,17 @@ public class InventoryItem : MonoBehaviour
     public int Count;
     public int StackSize = 20;
 
+	#region Constructors
+	public InventoryItem(){}
+
+	public InventoryItem(INVENTORY_TYPE type)
+	{
+		ItemType = type;
+		Count++;
+		StackSize = 1;
+	}
+	#endregion
+
     public void Use()
     {
         switch (ItemType)
@@ -32,6 +43,11 @@ public class InventoryItem : MonoBehaviour
             case INVENTORY_TYPE.TORCH:
                 // Create torch at the position
                 Debug.Log("Come on baby, light my fire");
+
+				Transform obj = GameObject.Find("Player").transform;
+				this.gameObject.transform.position = obj.position;
+				this.GetComponent<Light>().enabled = true;
+
                 break;
         }
     }

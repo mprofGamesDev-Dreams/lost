@@ -10,7 +10,7 @@ public class PlayerInventory : MonoBehaviour
     public float SlotPadding = 3;
     public float SlotSize = 25;
     public GameObject BaseSlot;
-    private List<GameObject> InventorySlots;
+    private List<GameObject> InventorySlots = new List<GameObject>();
     private RectTransform InventoryBG;
     private float InventoryWidth;
     private float InventoryHeight;
@@ -41,9 +41,6 @@ public class PlayerInventory : MonoBehaviour
         InventoryWidth = NoOfColumns * (SlotSize + SlotPadding) + SlotPadding;
         InventoryHeight = NoOfRows * (SlotSize + SlotPadding) + SlotPadding;
 
-        // Create a list to store the inventory
-        InventorySlots = new List<GameObject>();
-
         // Set up the inventory background
         InventoryBG = GetComponent<RectTransform>();
         InventoryBG.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, InventoryWidth);
@@ -65,7 +62,7 @@ public class PlayerInventory : MonoBehaviour
 
                 // Set slot properties
                 InvSlot.name = "Slot " + SlotID.ToString();
-                InvSlot.transform.parent = this.transform.parent;
+                InvSlot.transform.SetParent(this.transform.parent);
 
                 // Set slot rect propertie
                 InvTransform.localPosition = new Vector3(xPos, yPos, 0);
@@ -118,7 +115,6 @@ public class PlayerInventory : MonoBehaviour
                 return true;
             }
         }
-
         return false;
     }
 
@@ -138,7 +134,7 @@ public class PlayerInventory : MonoBehaviour
                 return true;
             }
         }
-
         return false;
     }
+
 }
