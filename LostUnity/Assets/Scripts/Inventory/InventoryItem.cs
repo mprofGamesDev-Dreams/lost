@@ -2,34 +2,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
-public class InventoryItem
+public class InventoryItem : MonoBehaviour
 {
     public enum INVENTORY_TYPE
     {
-        GOLD, TORCH, ARROW
+        GOLD, TORCH
     };
 
-    private INVENTORY_TYPE ItemType;
-    private int Count;
+    [Header("Sprites")]
+    public Sprite NormalSprite;
+    public Sprite HighlightedSprite;
 
-    public InventoryItem(INVENTORY_TYPE type)
-    {
-        ItemType = type;
-    }
+    [Header("Item Information")]
+    public INVENTORY_TYPE ItemType;
+    public int Count;
+    public int StackSize = 20;
 
-    public void Add(int Amount)
+    public void Use()
     {
-        Count += Amount;
-    }
+        switch (ItemType)
+        {
+            case INVENTORY_TYPE.GOLD:
+                // No use for gold
+                Debug.Log("I threw gold in the air like I just don't care");
+                break;
 
-    public INVENTORY_TYPE GetItemType()
-    {
-        return ItemType;
-    }
-
-    public int GetCount()
-    {
-        return Count;
+            case INVENTORY_TYPE.TORCH:
+                // Create torch at the position
+                Debug.Log("Come on baby, light my fire");
+                break;
+        }
     }
 }

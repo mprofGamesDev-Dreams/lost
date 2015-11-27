@@ -1,85 +1,144 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 public class PlayerInventory : MonoBehaviour
 {
-    [Header("GUI Accessors")]
-    public Text InventoryGUI;
+    [Header("GUI Configuration")]
+    public int NoOfColumns = 9;
+    public int NoOfRows = 3;
+    public float SlotPadding = 3;
+    public float SlotSize = 25;
+    public GameObject BaseSlot;
+    private List<GameObject> InventorySlots;
+    private RectTransform InventoryBG;
+    private float InventoryWidth;
+    private float InventoryHeight;
 
     [Header("Inventory")]
-    [SerializeField]private IList<InventoryItem> Inventory;
-
-    void Start()
+    private static int EmptySlots;
+    public static int FreeSlots
     {
-        // Calculate how many types of inventory items we have
-        int NoOfInventoryTypes = System.Enum.GetNames(typeof(InventoryItem.INVENTORY_TYPE)).Length;
+        get { return EmptySlots; }
+        set { EmptySlots = value; }
+    }
 
-        // Create a list of the inventory
-        Inventory = new List<InventoryItem>();
-        for (int i = 0; i < NoOfInventoryTypes; i++)
+	// Use this for initialization
+	void Start ()
+    {
+        CreateInterface();
+	}
+	
+	// Update is called once per frame
+	void Update ()
+    {
+	
+	}
+
+    private void CreateInterface()
+    {
+        // Calculate the height of the background
+        InventoryWidth = NoOfColumns * (SlotSize + SlotPadding) + SlotPadding;
+        InventoryHeight = NoOfRows * (SlotSize + SlotPadding) + SlotPadding;
+
+        // Create a list to store the inventory
+        InventorySlots = new List<GameObject>();
+
+        // Set up the inventory background
+        InventoryBG = GetComponent<RectTransform>();
+        InventoryBG.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, InventoryWidth);
+        InventoryBG.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, InventoryHeight);
+
+        int SlotID = 1;
+
+        for (int y = 0; y < NoOfRows; y++)
         {
-            Inventory.Add(new InventoryItem((InventoryItem.INVENTORY_TYPE)i));
+            for (int x = 0; x < NoOfColumns; x++)
+            {
+                // Create a new slot
+                GameObject InvSlot = (GameObject)Instantiate(BaseSlot);
+                RectTransform InvTransform = InvSlot.GetComponent<RectTransform>();
+
+                // Calculate slot properties
+                float xPos = (InventoryBG.localPosition.x) + SlotPadding * (x + 1) + (SlotSize * x);
+                float yPos = (InventoryBG.localPosition.y) - SlotPadding * (y + 1) - (SlotSize * y);
+
+                // Set slot properties
+                InvSlot.name = "Slot " + SlotID.ToString();
+                InvSlot.transform.parent = this.transform.parent;
+
+                // Set slot rect propertie
+                InvTransform.localPosition = new Vector3(xPos, yPos, 0);
+                InvTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, SlotSize);
+                InvTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, SlotSize);
+
+                // Add to our array
+                InventorySlots.Add(InvSlot);
+
+                // Move to next slot
+                SlotID++;
+            }
         }
 
-        // Set the initial gui text
-        RefreshGUI();
+        // Store how many slots we start with
+        EmptySlots = NoOfColumns * NoOfRows;
     }
 
-    // Testing Purposes only - this can be remove
-    public void AddGold(int Amount)
+    public bool AddItem(InventoryItem item)
     {
-        int ID = (int)InventoryItem.INVENTORY_TYPE.GOLD;
-
-        // Increase gold
-        Inventory[ID].Add(Amount);
-
-        RefreshGUI();
-    }
-
-    public void AddItem(InventoryItem.INVENTORY_TYPE type, int Amount)
-    {
-        int ID = (int)type;
-
-        // Increase counter of that item
-        Inventory[ID].Add(Amount);
-
-        RefreshGUI();
-    }
-
-    public void RefreshGUI()
-    {
-        string text;
-        int count;
-
-        // Reset the text
-        InventoryGUI.text = "";
-
-        // Compile the list
-        for (int i = 0; i < Inventory.Count(); i++)
+        // If theres only one of the item
+        if (item.StackSize == 1)
         {
-            text = Inventory[i].GetItemType().ToString();
-            count = Inventory[i].GetCount();
-
-            // Refresh Gold Counter
-            InventoryGUI.text += Format(text) + " : " + count + "\n";
+            // Add to the invetory
+            PlaceEmpty(item);
+            return true;
         }
-    }
-
-    private string Format(string s)
-    {
-        // Check for empty string.
-        if (string.IsNullOrEmpty(s))
+        else
         {
-            return string.Empty;
+            // Search the inventory for the item and add to the current stack
+            foreach (GameObject obj in InventorySlots)
+            {
+                InventorySlot slot = obj.GetComponent<InventorySlot>();
+
+                if (!slot.IsEmpty() && slot.IsAvailable())
+                {
+                    if (slot.StackItem().ItemType == item.ItemType)
+                    {
+                        slot.AddItem(item);
+                        EmptySlots--;
+                        return true;
+                    }
+                }
+            }
+
+            // Not possible to stack the item so add to the inventory
+            if (EmptySlots > 0)
+            {
+                PlaceEmpty(item);
+                return true;
+            }
         }
 
-        // Force to lower case
-        s = s.ToLower();
+        return false;
+    }
 
-        // Return char and concat substring.
-        return char.ToUpper(s[0]) + s.Substring(1);
+    private bool PlaceEmpty(InventoryItem item)
+    {
+        if (EmptySlots == 0)
+            return false;
+
+        foreach (GameObject obj in InventorySlots)
+        {
+            InventorySlot slot = obj.GetComponent<InventorySlot>();
+
+            if (slot.IsEmpty())
+            {
+                slot.AddItem(item);
+                EmptySlots--;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
