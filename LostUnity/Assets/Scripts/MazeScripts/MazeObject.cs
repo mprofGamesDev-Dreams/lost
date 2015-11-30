@@ -19,12 +19,12 @@ public partial class MazeObject : MonoBehaviour {
 	[SerializeField] private int tileHeight = 2;
 	[SerializeField] private GameObject wallPrefab;
 	[SerializeField] private GameObject floorPrefab;
-
+	[SerializeField] private GameObject chestPrefab;
 	[SerializeField] private int startX = 49;
 	[SerializeField] private int startY = 49;
 	[SerializeField] private List<GameObject> frontierBlocks;
 	[SerializeField] private int itNumber =0;
-
+	[SerializeField] private bool spawnChest = false;
 	[SerializeField] private float Speed = 0.5f;
 	// Use this for initialization
 	void Start () {
@@ -70,27 +70,45 @@ public partial class MazeObject : MonoBehaviour {
 			GameObject currentFrontier = frontierBlocks[itterator];
 			frontierBlocks.RemoveAt(itterator);
 
+			int numberOfNewPaths = 0;
 			if(!currentFrontier.GetComponent<BlockObject>().isPath && IsValidPath(currentFrontier))
 			{
 				Vector2 frontierPos = new Vector2(currentFrontier.GetComponent<BlockObject>().xPos,currentFrontier.GetComponent<BlockObject>().yPos);
-				if ((frontierPos.x -1 > 0.0f) && (frontierPos.x -1 <= (float)mazeWidth) && !mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
+				if ((frontierPos.x -1 > 0.0f) && (frontierPos.x -1 <= (float)mazeWidth) 
+				    && !mazeMap[(int)frontierPos.x-1,(int)frontierPos.y].GetComponent<BlockObject>().isPath
+				    && IsValidPath(mazeMap[(int)frontierPos.x-1,(int)frontierPos.y]))
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x-1,(int)frontierPos.y]);
+					numberOfNewPaths ++;
 				}
-				if ((frontierPos.x +1 > 0.0f) && (frontierPos.x +1 <= (float)mazeWidth) && !mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().isPath)
+				if ((frontierPos.x +1 > 0.0f) && (frontierPos.x +1 <= (float)mazeWidth) 
+				    && !mazeMap[(int)frontierPos.x+1,(int)frontierPos.y].GetComponent<BlockObject>().isPath
+				    && IsValidPath(mazeMap[(int)frontierPos.x+1,(int)frontierPos.y]))
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x+1,(int)frontierPos.y]);
+					numberOfNewPaths ++;
 				}
-				if ((frontierPos.y -1 > 0.0f) && (frontierPos.y -1 <= (float)mazeHeight) && !mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().isPath)
+				if ((frontierPos.y -1 > 0.0f) && (frontierPos.y -1 <= (float)mazeHeight) 
+				    && !mazeMap[(int)frontierPos.x,(int)frontierPos.y-1].GetComponent<BlockObject>().isPath
+				    && IsValidPath(mazeMap[(int)frontierPos.x,(int)frontierPos.y-1]))
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y-1]);
+					numberOfNewPaths ++;
 				}
-				if ((frontierPos.y +1> 0.0f) && (frontierPos.y +1 <= (float)mazeHeight) && !mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().isPath)
+				if ((frontierPos.y +1> 0.0f) && (frontierPos.y +1 <= (float)mazeHeight) 
+				    && !mazeMap[(int)frontierPos.x,(int)frontierPos.y+1].GetComponent<BlockObject>().isPath
+				    && IsValidPath(mazeMap[(int)frontierPos.x,(int)frontierPos.y+1]))
 				{
 					frontierBlocks.Add(mazeMap[(int)frontierPos.x,(int)frontierPos.y+1]);
+					numberOfNewPaths ++;
 				}
 
 				Deactivate(mazeMap[(int)frontierPos.x,(int)frontierPos.y]);
+
+				if (numberOfNewPaths <= 0 && spawnChest)
+				{
+					Instantiate(chestPrefab,mazeMap[(int)frontierPos.x,(int)frontierPos.y].transform.position, Quaternion.identity);
+				}
 
 			}
 			return true;
